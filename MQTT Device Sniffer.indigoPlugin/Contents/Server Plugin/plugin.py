@@ -211,8 +211,15 @@ class Plugin(indigo.PluginBase):
 
     def _finish_capture(self):
         """Called when the capture duration expires."""
+        mqtt_was_connected = self.mqtt_thread and self.mqtt_thread.connected
         self.capture_session.stop()
         self._stop_mqtt()
+
+        if not mqtt_was_connected:
+            self.logger.warning(
+                "MQTT was disconnected when capture ended — data may be incomplete. "
+                "Check broker settings and try again."
+            )
 
         if self.coordinator_id:
             try:
