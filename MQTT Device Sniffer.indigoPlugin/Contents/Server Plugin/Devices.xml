@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<Devices>
+	<!-- Sniffer Coordinator — owns the MQTT connection (auto-created) -->
+	<Device type="custom" id="snifferCoordinator" allowUserCreation="false">
+		<Name>MQTT Sniffer</Name>
+		<ConfigUI>
+			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
+				<Label>This device is managed automatically. Configure settings in Plugins → MQTT Device Sniffer → Configure.</Label>
+			</Field>
+		</ConfigUI>
+		<UiDisplayStateId>status</UiDisplayStateId>
+		<States>
+			<State id="status">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Sniffer Status Changed</TriggerLabel>
+				<ControlPageLabel>Status</ControlPageLabel>
+			</State>
+			<State id="mqttStatus">
+				<ValueType>String</ValueType>
+				<TriggerLabel>MQTT Status Changed</TriggerLabel>
+				<ControlPageLabel>MQTT Status</ControlPageLabel>
+			</State>
+			<State id="capturedTopics">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Captured Topics Changed</TriggerLabel>
+				<ControlPageLabel>Topics Captured</ControlPageLabel>
+			</State>
+			<State id="capturedPayloads">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Captured Payloads Changed</TriggerLabel>
+				<ControlPageLabel>Payloads Captured</ControlPageLabel>
+			</State>
+			<State id="lastCapture">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Capture Changed</TriggerLabel>
+				<ControlPageLabel>Last Capture</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+</Devices>

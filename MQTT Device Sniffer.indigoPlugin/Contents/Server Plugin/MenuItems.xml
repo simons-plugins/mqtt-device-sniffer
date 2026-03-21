@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<MenuItems>
+	<MenuItem id="captureDevice">
+		<Name>Capture Device</Name>
+		<CallbackMethod>captureDevice</CallbackMethod>
+	</MenuItem>
+	<MenuItem id="reviewCapture">
+		<Name>Review Captured Data</Name>
+		<CallbackMethod>reviewCapture</CallbackMethod>
+	</MenuItem>
+	<MenuItem id="submitCapture">
+		<Name>Submit for Plugin Generation</Name>
+		<CallbackMethod>submitCapture</CallbackMethod>
+	</MenuItem>
+	<MenuItem id="separator1" type="separator"/>
+	<MenuItem id="reportIssue">
+		<Name>Report Plugin Issue</Name>
+		<CallbackMethod>reportIssue</CallbackMethod>
+	</MenuItem>
+</MenuItems>

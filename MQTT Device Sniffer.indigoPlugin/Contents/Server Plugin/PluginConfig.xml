@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<PluginConfig>
+	<Field id="topLabel" type="label" fontSize="small" fontColor="darkgray">
+		<Label>MQTT Device Sniffer captures topics and payloads from any MQTT device. Use this to understand a device's MQTT structure, or submit the captured profile to automatically generate an Indigo plugin.</Label>
+	</Field>
+
+	<Field id="sep0" type="separator"/>
+
+	<Field id="brokerLabel" type="label" fontColor="darkgray" fontSize="small">
+		<Label>MQTT Broker</Label>
+	</Field>
+
+	<Field id="brokerHost" type="textfield" defaultValue="localhost">
+		<Label>Broker Host:</Label>
+	</Field>
+
+	<Field id="brokerPort" type="textfield" defaultValue="1883">
+		<Label>Broker Port:</Label>
+	</Field>
+
+	<Field id="mqttUsername" type="textfield" defaultValue="">
+		<Label>Username (optional):</Label>
+	</Field>
+
+	<Field id="mqttPassword" type="textfield" defaultValue="" secure="true">
+		<Label>Password (optional):</Label>
+	</Field>
+
+	<Field id="sep1" type="separator"/>
+
+	<Field id="deviceLabel" type="label" fontColor="darkgray" fontSize="small">
+		<Label>Device to Capture</Label>
+	</Field>
+
+	<Field id="deviceName" type="textfield" defaultValue="">
+		<Label>Device Name:</Label>
+	</Field>
+	<Field id="deviceNameHelp" type="label" fontSize="small" fontColor="darkgray" alignWithControl="true">
+		<Label>A friendly name for the device, e.g. "Shelly Plus 2PM" or "Pentair Pool".</Label>
+	</Field>
+
+	<Field id="deviceManufacturer" type="textfield" defaultValue="">
+		<Label>Manufacturer:</Label>
+	</Field>
+
+	<Field id="rootTopic" type="textfield" defaultValue="">
+		<Label>Root Topic:</Label>
+	</Field>
+	<Field id="rootTopicHelp" type="label" fontSize="small" fontColor="darkgray" alignWithControl="true">
+		<Label>The base MQTT topic for the device, e.g. "shelly/plus2pm" or "pool". Use MQTT Explorer to find yours. The sniffer will subscribe to {root}/#.</Label>
+	</Field>
+
+	<Field id="sep2" type="separator"/>
+
+	<Field id="captureLabel" type="label" fontColor="darkgray" fontSize="small">
+		<Label>Capture Settings</Label>
+	</Field>
+
+	<Field id="captureDuration" type="textfield" defaultValue="60">
+		<Label>Capture Duration (seconds):</Label>
+	</Field>
+
+	<Field id="sep3" type="separator"/>
+
+	<Field id="submissionLabel" type="label" fontColor="darkgray" fontSize="small">
+		<Label>Plugin Factory Submission</Label>
+	</Field>
+
+	<Field id="webhookUrl" type="textfield" defaultValue="https://factory.domio-smart-home.app/v1/submit">
+		<Label>Webhook Relay URL:</Label>
+	</Field>
+
+	<Field id="sep4" type="separator"/>
+
+	<Field id="showDebugInfo" type="checkbox" defaultValue="false">
+		<Label>Enable debug logging: </Label>
+	</Field>
+</PluginConfig>
