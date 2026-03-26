@@ -47,7 +47,7 @@
 		<Label>Root Topic:</Label>
 	</Field>
 	<Field id="rootTopicHelp" type="label" fontSize="small" fontColor="darkgray" alignWithControl="true">
-		<Label>The base MQTT topic for the device, e.g. "shelly/plus2pm" or "pool". Use MQTT Explorer to find yours. The sniffer will subscribe to {root}/#.</Label>
+		<Label>The MQTT topic prefix for the device. Be as specific as possible to capture only the target device type — e.g. "shellies/shellytrv-" (not just "shellies"), "zigbee2mqtt/TRV", or "tasmota/sensor1". The sniffer subscribes to {prefix}#. Use MQTT Explorer to find the right prefix.</Label>
 	</Field>
 
 	<Field id="sep2" type="separator"/>
