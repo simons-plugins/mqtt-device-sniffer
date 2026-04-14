@@ -346,10 +346,6 @@ class Plugin(indigo.PluginBase):
         )
         submit_thread.start()
 
-    def _relay_auth_header(self):
-        """Return the X-Relay-Secret header value from plugin prefs, or empty string."""
-        return (self.pluginPrefs.get("relaySharedSecret", "") or "").strip()
-
     def _do_submit(self, url, profile):
         """Background thread: POST device profile to webhook relay."""
         try:
@@ -357,9 +353,6 @@ class Plugin(indigo.PluginBase):
             req = Request(url, data=data, method="POST")
             req.add_header("Content-Type", "application/json")
             req.add_header("User-Agent", f"MQTT-Device-Sniffer/{self.pluginVersion}")
-            secret = self._relay_auth_header()
-            if secret:
-                req.add_header("X-Relay-Secret", secret)
 
             with urlopen(req, timeout=30) as response:
                 status = response.status
@@ -435,9 +428,6 @@ class Plugin(indigo.PluginBase):
             req = Request(url, data=data, method="POST")
             req.add_header("Content-Type", "application/json")
             req.add_header("User-Agent", f"MQTT-Device-Sniffer/{self.pluginVersion}")
-            secret = self._relay_auth_header()
-            if secret:
-                req.add_header("X-Relay-Secret", secret)
 
             with urlopen(req, timeout=30) as response:
                 status = response.status
