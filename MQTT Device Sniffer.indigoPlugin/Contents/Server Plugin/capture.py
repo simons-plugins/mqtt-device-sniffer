@@ -12,6 +12,16 @@ _IP_PATTERN = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 _MAC_PATTERN = re.compile(r"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}")
 _EMAIL_PATTERN = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
 _GPS_PATTERN = re.compile(r"-?\d{1,3}\.\d{4,}")
+# Lat,lng pair embedded in a string — high-confidence GPS match, safe to sub() globally
+_GPS_PAIR_PATTERN = re.compile(r"-?\d{1,3}\.\d{4,}\s*,\s*-?\d{1,3}\.\d{4,}")
+# GPS keyword followed by a numeric value inside a single string payload
+# (e.g. "pos lat=51.5074 lng=-0.1278") — redact the number next to the keyword.
+_GPS_KEYWORD_IN_STRING = re.compile(
+    r"(lat(?:itude)?|lng|lon(?:gitude)?|gps)([=:\s]+)(-?\d+\.\d+)",
+    re.IGNORECASE,
+)
+# Key-name substrings that indicate a GPS value — whole value redacted regardless of precision
+_GPS_KEY_HINTS = ("lat", "lng", "lon", "latitude", "longitude", "gps")
 
 
 class CaptureSession:
@@ -153,6 +163,20 @@ class CaptureSession:
             return "slow"  # every 30s-2min
         return "on_change"  # infrequent, likely event-driven
 
+    def _strip_root(self, topic):
+        """Replace the user's configured root prefix with a generic marker.
+
+        The user's root topic may contain personal segments (room names,
+        device labels) that must not be submitted. The generated plugin
+        will ask its own user for a root at install time, so only the
+        structural suffix is meaningful to the factory.
+        """
+        if topic == self.root_topic:
+            return "{root}"
+        if topic.startswith(self.root_topic + "/"):
+            return "{root}/" + topic[len(self.root_topic) + 1:]
+        return topic
+
     def build_profile(self):
         """Build the structured device profile for submission."""
         if not self.topic_data:
@@ -161,7 +185,7 @@ class CaptureSession:
         topic_tree = {}
         for topic, data in sorted(self.topic_data.items()):
             anonymised_payloads = [self._anonymise(p) for p in data["sample_payloads"]]
-            topic_tree[topic] = {
+            topic_tree[self._strip_root(topic)] = {
                 "samplePayloads": anonymised_payloads,
                 "updateFrequency": self._update_frequency(data["timestamps"]),
                 "messageCount": len(data["timestamps"]),
@@ -177,7 +201,7 @@ class CaptureSession:
         return {
             "deviceName": self.device_name,
             "manufacturer": self.manufacturer,
-            "rootTopic": self.root_topic,
+            "rootTopic": "{root}",
             "captureDuration": self.duration,
             "actualDuration": round(self.elapsed, 1),
             "topicTree": topic_tree,
@@ -186,19 +210,38 @@ class CaptureSession:
             "uniquePayloadCount": len(unique_payloads),
         }
 
-    def _anonymise(self, value):
-        """Recursively anonymise sensitive data from a payload."""
+    def _anonymise(self, value, key_context=""):
+        """Recursively anonymise sensitive data from a payload.
+
+        key_context is the JSON key this value sits under (if any) — used
+        to redact values whose key name implies a GPS coordinate, even if
+        the value itself wouldn't match the precision-based regex.
+        """
         if isinstance(value, dict):
-            return {k: self._anonymise(v) for k, v in value.items()}
+            return {k: self._anonymise(v, key_context=k) for k, v in value.items()}
         if isinstance(value, list):
-            return [self._anonymise(item) for item in value]
+            return [self._anonymise(item, key_context=key_context) for item in value]
+
+        key_lower = key_context.lower() if key_context else ""
+        is_gps_key = any(hint in key_lower for hint in _GPS_KEY_HINTS)
+
+        if isinstance(value, (int, float)) and is_gps_key:
+            return 0.0
+
         if isinstance(value, str):
             result = value
             result = _IP_PATTERN.sub("x.x.x.x", result)
             result = _MAC_PATTERN.sub("XX:XX:XX:XX:XX:XX", result)
             result = _EMAIL_PATTERN.sub("redacted@example.com", result)
-            # GPS coords: only redact if the value itself looks like a standalone coordinate
+            # High-confidence: a lat,lng pair embedded anywhere in the string
+            result = _GPS_PAIR_PATTERN.sub("0.0000,0.0000", result)
+            # GPS keyword + number in the same string (e.g. "lat=51.5074 lng=-0.1278")
+            result = _GPS_KEYWORD_IN_STRING.sub(r"\1\g<2>0.0000", result)
+            # Whole-string coordinate (existing behavior)
             if _GPS_PATTERN.fullmatch(result.strip()):
+                result = "0.0000"
+            # Key-name hint: redact any numeric-looking value whose key screams GPS
+            elif is_gps_key and _GPS_PATTERN.search(result):
                 result = "0.0000"
             return result
         return value
