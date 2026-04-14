@@ -70,6 +70,13 @@
 		<Label>Webhook Relay URL:</Label>
 	</Field>
 
+	<Field id="relaySharedSecret" type="textfield" defaultValue="" secure="true">
+		<Label>Relay Shared Secret:</Label>
+	</Field>
+	<Field id="relaySecretHelp" type="label" fontSize="small" fontColor="darkgray" alignWithControl="true">
+		<Label>Must match the RELAY_SHARED_SECRET configured on the Cloudflare Worker. Sent as X-Relay-Secret on every submit/report request.</Label>
+	</Field>
+
 	<Field id="sep4" type="separator"/>
 
 	<Field id="showDebugInfo" type="checkbox" defaultValue="false">
