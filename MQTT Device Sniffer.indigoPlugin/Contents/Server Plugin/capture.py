@@ -64,6 +64,7 @@ class CaptureSession:
     def add_message(self, topic, payload, timestamp):
         """Record an MQTT message during capture."""
         if not self.is_active:
+            self.logger.debug(f"Message rejected (capture not active): {topic}")
             return False
 
         self.messages.append({

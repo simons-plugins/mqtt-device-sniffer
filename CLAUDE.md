@@ -1,5 +1,39 @@
 # CLAUDE.md
 
+> **Part of the [Indigo workspace](../CLAUDE.md)** — see root for cross-project map, standards, and tooling.
+
+## Project Identity
+
+- **Name**: MQTT Device Sniffer
+- **Type**: Indigo plugin
+- **Shortcut**: `sniffer`
+- **GitHub**: https://github.com/simons-plugins/mqtt-device-sniffer
+- **Language**: Python 3 (paho-mqtt 2.x bundled)
+- **Bundle ID**: `com.simons-plugins.mqtt-device-sniffer`
+
+## Role in the workspace
+
+First stage of the plugin factory pipeline — captures MQTT topics/payloads, builds an anonymised device profile, submits for automated plugin generation.
+
+```
+mqtt-device-sniffer (this) → plugin-factory-relay → indigo-plugin-factory → new plugin
+```
+
+## Related projects
+
+- [`../plugin-factory-relay/`](../plugin-factory-relay/) — receives submissions
+- [`../indigo-plugin-factory/`](../indigo-plugin-factory/) — generates the plugin
+
+## Standards
+
+Inherits workspace standards from [root CLAUDE.md](../CLAUDE.md#common-standards-apply-to-every-project-unless-its-claudemd-overrides). Key points for this project:
+
+- **Version bump per PR**: `Info.plist` `PluginVersion`
+- **Testing**: none
+- **Merge**: GitHub PR only, never `--admin`, never squash, wait for CI green, wait for user go-ahead.
+
+---
+
 ## Plugin Overview
 
 **MQTT Device Sniffer** — Indigo plugin that captures MQTT topics and payloads from any device, builds a structured device profile, and submits it for automated plugin generation.
