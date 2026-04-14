@@ -378,21 +378,74 @@ class Plugin(indigo.PluginBase):
         except Exception as err:
             self.logger.error(f"Submission error: {err}")
 
-    def reportIssue(self):
-        """Capture recent error logs and post as an issue on a generated plugin's repo."""
+    def reportIssue(self, valuesDict, typeId=""):
+        """Post an error report to the relay, which files a GitHub issue on the plugin repo."""
+        errors = indigo.Dict()
+
+        plugin_repo = (valuesDict.get("pluginRepo") or "").strip()
+        if "/" not in plugin_repo:
+            errors["pluginRepo"] = "Expected owner/name format, e.g. simons-plugins/indigo-shelly-plus2pm"
+
+        error_log = (valuesDict.get("errorLog") or "").strip()
+        if not error_log:
+            errors["errorLog"] = "Paste the relevant error log lines before submitting."
+
         webhook_url = self.pluginPrefs.get("webhookUrl", "")
         if not webhook_url:
-            self.logger.error("No webhook URL configured.")
-            return
+            errors["errorLog"] = "No webhook URL configured in plugin preferences."
 
-        # Build the report URL (different endpoint)
+        if errors:
+            return (False, valuesDict, errors)
+
         report_url = webhook_url.rsplit("/", 1)[0] + "/report"
 
-        self.logger.info(
-            "To report an issue with a generated plugin, check the Indigo event log "
-            "for error messages and visit the plugin's GitHub repository Issues page. "
-            "You can find the repo URL in the plugin's Info.plist (CFBundleURLTypes)."
-        )
-        self.logger.info(
-            "Automated error reporting will be available in a future update."
-        )
+        try:
+            indigo_version = str(indigo.server.version)
+        except Exception:
+            indigo_version = "unknown"
+
+        report = {
+            "pluginRepo": plugin_repo,
+            "pluginVersion": (valuesDict.get("pluginVersion") or "").strip() or "unknown",
+            "description": (valuesDict.get("description") or "").strip(),
+            "errorLog": error_log,
+            "indigoVersion": indigo_version,
+        }
+
+        self.logger.info(f"Submitting error report for {plugin_repo}...")
+        threading.Thread(
+            target=self._do_report,
+            args=(report_url, report),
+            daemon=True,
+        ).start()
+
+        return (True, valuesDict)
+
+    def _do_report(self, url, report):
+        """Background thread: POST error report to webhook relay."""
+        try:
+            data = json.dumps(report).encode("utf-8")
+            req = Request(url, data=data, method="POST")
+            req.add_header("Content-Type", "application/json")
+            req.add_header("User-Agent", f"MQTT-Device-Sniffer/{self.pluginVersion}")
+
+            with urlopen(req, timeout=30) as response:
+                status = response.status
+                body = json.loads(response.read().decode("utf-8"))
+
+            if status in (200, 201):
+                issue_url = body.get("issueUrl", "")
+                self.logger.info(f"Error report filed: {issue_url}")
+            else:
+                self.logger.error(f"Report failed (HTTP {status}): {body}")
+
+        except HTTPError as err:
+            try:
+                error_body = err.read().decode("utf-8")
+            except Exception:
+                error_body = str(err)
+            self.logger.error(f"Report failed (HTTP {err.code}): {error_body}")
+        except URLError as err:
+            self.logger.error(f"Could not reach webhook relay: {err.reason}")
+        except Exception as err:
+            self.logger.error(f"Report error: {err}")
